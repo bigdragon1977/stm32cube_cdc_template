@@ -1,0 +1,73 @@
+PREFIX=arm-none-eabi-
+CC=${PREFIX}gcc
+AS=${PREFIX}as
+OBJCOPY=${PREFIX}objcopy
+
+
+CFLAGS=-fno-common -Os -g -mcpu=cortex-m3 -mthumb -mthumb-interwork
+
+INCLUDES=-I../Inc
+INCLUDES+=-I.
+INCLUDES+=-I./STM32F1xx_HAL_Driver/Inc
+INCLUDES+=-I./CMSIS/Include
+INCLUDES+=-I../STM32_USB_Device_Library/Core/Inc
+INCLUDES+=-I../STM32_USB_Device_Library/Class/CDC/Inc
+
+CFLAGS+= $(INCLUDES)
+
+SOURCE_DIR=../Src
+BUILD_DIR=build
+USB_BUILD_DIR=$(BUILD_DIR)/usb
+
+USB_DIR=../STM32_USB_Device_Library
+
+USB_SOURCES=usbd_ctlreq.c usbd_ioreq.c usbd_core.c usbd_cdc.c
+
+LDFLAGS=-TSTM32F103XB_FLASH.ld -Lbuild -lstm32cube
+
+
+SOURCES=main.c stm32f1xx_hal_msp.c stm32f1xx_it.c system_stm32f1xx.c usbd_cdc_interface.c usbd_conf.c usbd_desc.c
+
+OBJS=$(addprefix $(BUILD_DIR)/,$(SOURCES:.c=.o))
+OBJS+=$(BUILD_DIR)/startup_stm32f103xb.o
+
+all: bin
+
+USB_OBJECTS += $(addprefix $(USB_BUILD_DIR)/,$(notdir $(USB_SOURCES:.c=.o)))
+
+usb: $(USB_OBJECTS)
+
+$(USB_BUILD_DIR)/%.o: $(USB_DIR)/Core/Src/%.c | $(USB_BUILD_DIR)
+	$(CC) $(CFLAGS) -Os -c -o $@ $^
+
+$(USB_BUILD_DIR)/%.o: $(USB_DIR)/Class/CDC/Src/%.c | $(USB_BUILD_DIR)
+	$(CC) $(CFLAGS) -Os -c -o $@ $^
+
+OBJS+=$(USB_OBJECTS)
+
+bin: main.elf
+	$(OBJCOPY) -Obinary main.elf main.bin
+
+main.elf: $(OBJS)
+	echo $@
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+
+$(BUILD_DIR)/%.o: %.s
+	$(CC) $(CFLAGS) -c  -o $@ -g $^ 
+
+$(BUILD_DIR)/%.o: ../Src/%.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $^
+
+$(BUILD_DIR):
+	mkdir $@
+
+
+
+print-%: ; @echo $*=$($*)
+
+clean:
+	rm main.elf main.bin $(OBJS)
+
+program:
+	st-flash --reset write main.bin 0x08000000

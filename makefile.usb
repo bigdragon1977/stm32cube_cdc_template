@@ -1,0 +1,23 @@
+USB_DIR=Middlewares/ST/STM32_USB_Device_Library/
+USB_INCLUDES=-I$(USB_DIR)/Core/Inc/
+USB_INCLUDES+=-I$(USB_DIR)/Class/CDC/Inc/
+
+USB_CORE_SRC=usbd_core.c  usbd_ctlreq.c  usbd_ioreq.c
+USB_CLASS_SRC=usbd_cdc.c
+
+USB_BUILD_DIR=$(BUILD_DIR)/usb
+
+USB_OBJECTS=$(addprefix $(USB_BUILD_DIR)/,$(USB_CORE_SRC:.c=.o))
+USB_OBJECTS+=$(addprefix $(USB_BUILD_DIR)/,$(USB_CLASS_SRC:.c=.o))
+
+usb: $(USB_OBJECTS)
+	echo $@
+
+$(USB_BUILD_DIR)/%.o: $(USB_DIR)/Core/Src/%.c | $(USB_BUILD_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $^
+
+$(USB_BUILD_DIR)/%.o: $(USB_DIR)/Class/CDC/Src/%.c | $(USB_BUILD_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $^
+
+$(USB_BUILD_DIR):
+	$(MKDIR) $@

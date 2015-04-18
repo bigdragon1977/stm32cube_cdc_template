@@ -1,0 +1,18 @@
+HAL_INCLUDES=-ISTM32F1xx_HAL_Driver/Inc
+HAL_INCLUDES+=-ICMSIS/Device/ST/STM32F1xx/Include
+HAL_INCLUDES+=-ICMSIS/Include
+
+HAL_DIR=STM32F1xx_HAL_Driver
+
+HAL_BUILD_DIR=$(BUILD_DIR)/hal
+
+HAL_SRC=$(notdir $(wildcard $(HAL_DIR)/Src/*.c))
+HAL_OBJECTS=$(addprefix $(HAL_BUILD_DIR)/,$(HAL_SRC:.c=.o))								   
+
+hal: $(HAL_OBJECTS)
+
+$(HAL_BUILD_DIR)/%.o:$(HAL_DIR)/Src/%.c | $(HAL_BUILD_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $^
+
+$(HAL_BUILD_DIR):
+	$(MKDIR) $@

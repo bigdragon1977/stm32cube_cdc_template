@@ -6,7 +6,7 @@ MKDIR=mkdir
 
 BUILD_DIR=build
 
-CFLAGS=-fno-common -Os -g -mcpu=cortex-m3 -mthumb -mthumb-interwork
+CFLAGS=-fno-common -Os -g -mcpu=cortex-m3 -mthumb -mthumb-interwork  --specs=nosys.specs
 
 SOURCES=main.c stm32f1xx_hal_msp.c stm32f1xx_it.c system_stm32f1xx.c usbd_cdc_interface.c usbd_conf.c usbd_desc.c
 
